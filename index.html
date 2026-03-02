@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Che birra sei?</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --amber: #d4a03a;
+            --amber-dark: #b8860b;
+            --amber-glow: #f5d799;
+            --dark: #1a1612;
+            --darker: #0f0d0a;
+            --cream: #f5f0e6;
+            --foam: #fff8e7;
+            --text: #e8e0d0;
+            --text-muted: #a09080;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Source Sans 3', sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px 24px 80px;
+            position: relative;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .beer-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            display: block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--amber);
+            line-height: 1.1;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            font-weight: 300;
+            letter-spacing: 0.03em;
+        }
+
+        /* Progress */
+        .progress-container {
+            margin-bottom: 48px;
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: rgba(212, 160, 58, 0.15);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--amber-dark), var(--amber));
+            border-radius: 2px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .progress-text {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 8px;
+            font-weight: 300;
+        }
+
+        /* Question */
+        .question-section {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .question-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.85rem;
+            color: var(--amber-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 12px;
+        }
+
+        .question-text {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            font-weight: 400;
+            font-style: italic;
+            color: var(--cream);
+            line-height: 1.4;
+            margin-bottom: 36px;
+        }
+
+        /* Options */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(212, 160, 58, 0.12);
+            border-radius: 8px;
+            padding: 18px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        .option:hover {
+            background: rgba(212, 160, 58, 0.08);
+            border-color: rgba(212, 160, 58, 0.3);
+            transform: translateX(4px);
+        }
+
+        .option-letter {
+            font-family: 'Playfair Display', serif;
+            font-size: 0.9rem;
+            color: var(--amber);
+            font-weight: 700;
+            min-width: 20px;
+            padding-top: 1px;
+        }
+
+        .option-text {
+            font-size: 1rem;
+            line-height: 1.5;
+            font-weight: 300;
+            color: var(--text);
+        }
+
+        .option.selected {
+            background: rgba(212, 160, 58, 0.12);
+            border-color: var(--amber);
+        }
+
+        /* Result */
+        .result-section {
+            text-align: center;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .result-emoji {
+            font-size: 5rem;
+            margin-bottom: 24px;
+            display: block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .result-beer {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            color: var(--amber);
+            margin-bottom: 8px;
+        }
+
+        .result-archetype {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 32px;
+        }
+
+        .result-description {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text);
+            font-weight: 300;
+            max-width: 560px;
+            margin: 0 auto 40px;
+        }
+
+        .restart-btn {
+            font-family: 'Source Sans 3', sans-serif;
+            background: transparent;
+            border: 1px solid var(--amber-dark);
+            color: var(--amber);
+            padding: 14px 36px;
+            font-size: 0.95rem;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            margin-bottom: 48px;
+        }
+
+        .restart-btn:hover {
+            background: rgba(212, 160, 58, 0.1);
+            border-color: var(--amber);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(212, 160, 58, 0.1);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        footer a {
+            color: var(--amber-dark);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--amber);
+        }
+
+        /* Intro */
+        .intro-section {
+            text-align: center;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .intro-text {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--text-muted);
+            font-weight: 300;
+            max-width: 520px;
+            margin: 0 auto 40px;
+        }
+
+        .start-btn {
+            font-family: 'Source Sans 3', sans-serif;
+            background: linear-gradient(135deg, var(--amber-dark), var(--amber));
+            border: none;
+            color: var(--darker);
+            padding: 16px 48px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(212, 160, 58, 0.3);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .hidden { display: none; }
+
+        /* Mobile */
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .question-text { font-size: 1.3rem; }
+            .result-beer { font-size: 1.8rem; }
+            .container { padding: 24px 16px 60px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <span class="beer-icon">🍺</span>
+            <h1>Che birra sei?</h1>
+            <p class="subtitle">8 domande. Nessuna risposta giusta. Solo la tua.</p>
+        </header>
+
+        <!-- INTRO -->
+        <div id="intro" class="intro-section">
+            <p class="intro-text">
+                Non è un test scientifico. Non misura niente.<br>
+                Ma dice qualcosa — su come scegli,<br>
+                su cosa cerchi, su quello che non dici.
+            </p>
+            <button class="start-btn" onclick="startQuiz()">Cominciamo</button>
+        </div>
+
+        <!-- QUIZ -->
+        <div id="quiz" class="hidden">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText"></div>
+            </div>
+            <div class="question-section" id="questionSection"></div>
+        </div>
+
+        <!-- RESULT -->
+        <div id="result" class="result-section hidden"></div>
+
+        <!-- FOOTER -->
+        <footer>
+            Da <em>Dimmi che birra bevi</em> — manuale atipico su birra e persone<br>
+            <strong>Vik Planner</strong>
+        </footer>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                text: "Arrivi al bancone. Cosa fai?",
+                options: [
+                    { letter: "A", text: "Guardo cosa bevono gli altri e ordino la stessa cosa." },
+                    { letter: "B", text: "Ordino subito, so già cosa voglio. La più forte." },
+                    { letter: "C", text: "Chiedo cosa hanno di particolare, qualcosa che non conosco." },
+                    { letter: "D", text: "Ordino la solita. Non devo pensarci." },
+                    { letter: "E", text: "Chiedo consiglio al barista. Voglio scegliere bene." },
+                    { letter: "F", text: "Aspetto. Non ho fretta. Osservo." }
+                ]
+            },
+            {
+                text: "Un amico ordina una birra orrenda. Glielo dici?",
+                options: [
+                    { letter: "A", text: "No. Ognuno beve quello che vuole." },
+                    { letter: "B", text: "Sì, subito. Gli amici si dicono la verità." },
+                    { letter: "C", text: "Faccio una battuta, così passo il messaggio senza sembrare pesante." },
+                    { letter: "D", text: "Non me ne accorgo nemmeno. Sto pensando ad altro." },
+                    { letter: "E", text: "Glielo dico, ma con tatto. Magari non sa che c'è di meglio." },
+                    { letter: "F", text: "Lo penso, ma non lo dico. Resto in silenzio." }
+                ]
+            },
+            {
+                text: "È lunedì sera, sei solo. Cosa apri?",
+                options: [
+                    { letter: "A", text: "Quello che c'è nel frigo. Non è il momento di fare i difficili." },
+                    { letter: "B", text: "Qualcosa di forte. Il lunedì richiede soluzioni rapide." },
+                    { letter: "C", text: "Una birra che mi faccia pensare ad altro. Al weekend, all'estate, a qualsiasi cosa." },
+                    { letter: "D", text: "Non bevo da solo il lunedì. Aspetto compagnia." },
+                    { letter: "E", text: "Qualcosa di buono. Se devo bere solo, almeno che valga la pena." },
+                    { letter: "F", text: "La stessa di sempre. I rituali servono." }
+                ]
+            },
+            {
+                text: "Ti regalano una birra che non berresti mai. Come reagisci?",
+                options: [
+                    { letter: "A", text: "Ringrazio e la metto in frigo. Prima o poi passerà qualcuno a cui piace." },
+                    { letter: "B", text: "Ringrazio, la apro subito e la bevo. Non si rifiuta un regalo." },
+                    { letter: "C", text: "Ringrazio, ma dentro penso: \"Questo non mi conosce per niente.\"" },
+                    { letter: "D", text: "Ringrazio. Non ci penso più." },
+                    { letter: "E", text: "Ringrazio, ma prima o poi gli faccio capire cosa mi piace davvero." },
+                    { letter: "F", text: "Ringrazio. Poi ci rifletto: perché mi ha regalato proprio questa?" }
+                ]
+            },
+            {
+                text: "Sei in un locale nuovo. Come scegli cosa bere?",
+                options: [
+                    { letter: "A", text: "Guardo cosa bevono gli altri e mi adeguo." },
+                    { letter: "B", text: "Chiedo cosa hanno di più forte." },
+                    { letter: "C", text: "Chiedo cosa hanno di particolare, di diverso dal solito." },
+                    { letter: "D", text: "Prendo una cosa che conosco. Non è il momento di sperimentare." },
+                    { letter: "E", text: "Studio il menu, chiedo consiglio, scelgo con cura." },
+                    { letter: "F", text: "Prendo quello che prendo sempre. Cambiano i locali, non cambio io." }
+                ]
+            },
+            {
+                text: "Un conoscente ti critica per la birra che bevi. Come reagisci?",
+                options: [
+                    { letter: "A", text: "Sorrido e cambio argomento. Non vale la pena discutere." },
+                    { letter: "B", text: "Rispondo a tono. Nessuno critica le mie scelte." },
+                    { letter: "C", text: "Gli chiedo perché. Magari ha ragione, magari imparo qualcosa." },
+                    { letter: "D", text: "Non mi importa. Bevo quello che mi va." },
+                    { letter: "E", text: "Spiego la mia scelta. Se non capisce, è un problema suo." },
+                    { letter: "F", text: "Resto in silenzio. So quello che so." }
+                ]
+            },
+            {
+                text: "La serata sta finendo. Gli altri rallentano. Tu?",
+                options: [
+                    { letter: "A", text: "Rallento anch'io. Non c'è fretta." },
+                    { letter: "B", text: "Accelero. Le ultime ore sono le migliori." },
+                    { letter: "C", text: "Propongo di spostarci. La serata non deve finire qui." },
+                    { letter: "D", text: "Chiedo il conto. Domani lavoro." },
+                    { letter: "E", text: "Ordino un'ultima birra, quella giusta per chiudere." },
+                    { letter: "F", text: "Sto in silenzio e guardo. Le serate che finiscono hanno qualcosa di bello." }
+                ]
+            },
+            {
+                text: "Se la tua birra fosse un messaggio, cosa direbbe?",
+                options: [
+                    { letter: "A", text: "\"Sono qui, va tutto bene.\"" },
+                    { letter: "B", text: "\"Non ho paura.\"" },
+                    { letter: "C", text: "\"Vorrei essere altrove.\"" },
+                    { letter: "D", text: "\"Non complicare le cose.\"" },
+                    { letter: "E", text: "\"Ho gusto.\"" },
+                    { letter: "F", text: "\"Non ho bisogno che tu capisca.\"" }
+                ]
+            }
+        ];
+
+        const results = {
+            A: {
+                beer: "Heineken",
+                emoji: "🍺",
+                archetype: "L'adattabile",
+                description: "Sei l'adattabile. Sai stare ovunque senza creare attrito. Ti adatti al contesto, leggi la stanza, non imponi. È una dote rara. Ma ogni tanto chiediti: adattarsi è scegliere, o evitare di scegliere?"
+            },
+            B: {
+                beer: "Tennent's / Viking",
+                emoji: "⚡",
+                archetype: "L'impulsivo",
+                description: "Sei l'impulsivo, il forte. Vai dritto, non aspetti, non ti risparmi. Quando entri in una stanza, la stanza se ne accorge. È energia pura. Ma l'energia senza freno brucia. A volte dovresti rallentare."
+            },
+            C: {
+                beer: "Corona / BrewDog",
+                emoji: "🌴",
+                archetype: "Il fuggitivo",
+                description: "Sei il fuggitivo, l'alternativo. Cerchi sempre qualcosa di diverso, di più vero, di altrove. È una ricerca nobile. Ma diverso da cosa, esattamente? E quando lo trovi, sei capace di restare?"
+            },
+            D: {
+                beer: "Bud / Peroni",
+                emoji: "🎯",
+                archetype: "Il pragmatico",
+                description: "Sei il pragmatico, il normale. Hai risolto il problema delle scelte eliminandole. Funziona. Ti fa risparmiare tempo e energie. Ma ogni tanto, nel non scegliere, ti perdi qualcosa. O qualcuno."
+            },
+            E: {
+                beer: "Menabrea / Leffe",
+                emoji: "✨",
+                archetype: "Il misurato",
+                description: "Sei il misurato, l'aspirante. Cerchi qualità, distinzione, elevazione. Hai buon gusto e lo sai. Il rischio? Che la ricerca diventi posa. Attento a non sembrare quello che non sei."
+            },
+            F: {
+                beer: "Guinness / Franziskaner",
+                emoji: "🌙",
+                archetype: "Il profondo",
+                description: "Sei il profondo, il sensibile. Senti tanto, dici poco. Il silenzio è il tuo territorio, l'osservazione la tua lingua. Non tutti ti capiscono. Ma quelli che ti capiscono, ti capiscono davvero."
+            },
+            mixed: {
+                beer: "Complicato",
+                emoji: "🎲",
+                archetype: "L'inclassificabile",
+                description: "Nessuna maggioranza chiara. Sei complicato. Oppure il test è stupido. Probabilmente entrambe le cose. Ma forse è proprio questa la risposta più onesta: non entri in una categoria perché le categorie sono strette."
+            }
+        };
+
+        let currentQuestion = 0;
+        let answers = [];
+
+        function startQuiz() {
+            document.getElementById('intro').classList.add('hidden');
+            document.getElementById('quiz').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = questions[currentQuestion];
+            const total = questions.length;
+            const progress = ((currentQuestion) / total) * 100;
+
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = (currentQuestion + 1) + ' / ' + total;
+
+            let html = `
+                <div class="question-number">Domanda ${currentQuestion + 1}</div>
+                <div class="question-text">${q.text}</div>
+                <div class="options">
+            `;
+
+            q.options.forEach((opt, i) => {
+                html += `
+                    <div class="option" onclick="selectOption('${opt.letter}', this)">
+                        <span class="option-letter">${opt.letter}</span>
+                        <span class="option-text">${opt.text}</span>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            
+            const section = document.getElementById('questionSection');
+            section.style.animation = 'none';
+            section.offsetHeight; // trigger reflow
+            section.style.animation = 'slideUp 0.5s ease-out';
+            section.innerHTML = html;
+        }
+
+        function selectOption(letter, element) {
+            // Prevent double click
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            element.classList.add('selected');
+
+            answers.push(letter);
+
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < questions.length) {
+                    showQuestion();
+                } else {
+                    showResult();
+                }
+            }, 400);
+        }
+
+        function showResult() {
+            document.getElementById('quiz').classList.add('hidden');
+
+            // Count answers
+            const counts = {};
+            answers.forEach(a => {
+                counts[a] = (counts[a] || 0) + 1;
+            });
+
+            // Find max
+            let maxLetter = 'mixed';
+            let maxCount = 0;
+            let tie = false;
+
+            for (const [letter, count] of Object.entries(counts)) {
+                if (count > maxCount) {
+                    maxCount = count;
+                    maxLetter = letter;
+                    tie = false;
+                } else if (count === maxCount) {
+                    tie = true;
+                }
+            }
+
+            // If tie or max is only 2, show mixed
+            if (tie && maxCount <= 2) {
+                maxLetter = 'mixed';
+            }
+
+            const r = results[maxLetter] || results.mixed;
+
+            const resultDiv = document.getElementById('result');
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = `
+                <span class="result-emoji">${r.emoji}</span>
+                <div class="result-beer">${r.beer}</div>
+                <div class="result-archetype">${r.archetype}</div>
+                <p class="result-description">${r.description}</p>
+                <button class="restart-btn" onclick="restart()">Rifai il test</button>
+            `;
+        }
+
+        function restart() {
+            currentQuestion = 0;
+            answers = [];
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('intro').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
